@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NinjaDudsDesktopClient", "NinjaDudsDesktopClient\NinjaDudsDesktopClient.csproj", "{252AB5F2-7885-47B7-8FF1-C0E804B45FAE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{252AB5F2-7885-47B7-8FF1-C0E804B45FAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{252AB5F2-7885-47B7-8FF1-C0E804B45FAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{252AB5F2-7885-47B7-8FF1-C0E804B45FAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{252AB5F2-7885-47B7-8FF1-C0E804B45FAE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DEFB01B2-CBB8-4F14-9CF1-A66656116582}
+	EndGlobalSection
+EndGlobal
