@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MjpegProcessor;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -76,11 +77,33 @@ namespace NinjaDudsDesktopClient
 
         }
 
+        public MjpegDecoder _mjpeg;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            TestWebApi();           
+            _mjpeg = new MjpegDecoder();
+            _mjpeg.FrameReady += mjpeg_FrameReady;
+            _mjpeg.Error += _mjpeg_Error;
+
+            _mjpeg.ParseStream(new Uri("http://192.168.1.14:8081"));
+            // TestWebApi();           
+        }
+
+        private void Start_Click(object sender, RoutedEventArgs e)
+        {
+          
+        }
+
+        private void mjpeg_FrameReady(object sender, FrameReadyEventArgs e)
+        {
+            ImageViewer.Source = e.BitmapImage;
+        }
+
+        void _mjpeg_Error(object sender, ErrorEventArgs e)
+        {
+            MessageBox.Show(e.Message);
         }
     }
 
