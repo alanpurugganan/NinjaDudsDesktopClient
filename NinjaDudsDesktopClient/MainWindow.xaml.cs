@@ -83,6 +83,8 @@ namespace NinjaDudsDesktopClient
         }
     }
 
+    //Added a comment
+
     public class Person
     {
         public string Email { get; set; }
