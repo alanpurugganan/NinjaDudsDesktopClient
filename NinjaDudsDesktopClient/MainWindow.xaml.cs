@@ -29,8 +29,7 @@ namespace NinjaDudsDesktopClient
     {
         public async void TestWebApi()
         {
-            bool local = true;
-
+          
             var response = new Response() { Message = "YippeKayYay" };
 
             BitmapImage bitmap = new BitmapImage(new Uri(@"C:\Users\blank\Pictures\Capture.PNG"));
@@ -44,70 +43,81 @@ namespace NinjaDudsDesktopClient
 
             var s3UploadRequest = new S3UploadRequest()
             {
-                Key = "testing.png",
+                Key = "testing57.png",
                 Message = base64String,
                 IsBase64Encoded = true,
                 ContentType = "image/png"
             };
 
-
-
-            var person = new Person()
+            try
             {
-                Email = "alan.purugganan@gmail.com",
-                FirstName = "Alan",
-                LastName = "Purugganan"
-            };
-
-            var options = new JsonSerializerOptions()
+                NinjaDudsAwsApi.Init();
+                NinjaDudsAwsApi api = NinjaDudsAwsApi.Current;
+                var s3UploadResponse = await api.S3UploadAsync(s3UploadRequest);
+            }
+            catch(Exception ex)
             {
-                IgnoreNullValues = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                PropertyNameCaseInsensitive = true
-        };
-
-            string json = JsonSerializer.Serialize<S3UploadRequest>(s3UploadRequest, options);
-
-            using var client = new HttpClient();
+                int x = 9;
+            }
 
             
-            client.BaseAddress = (local)
-                ? new Uri("http://127.0.0.1:3000")
-                : new Uri("https://xwvhb77s80.execute-api.us-east-1.amazonaws.com");
+
+        //    var person = new Person()
+        //    {
+        //        Email = "alan.purugganan@gmail.com",
+        //        FirstName = "Alan",
+        //        LastName = "Purugganan"
+        //    };
+
+        //    var options = new JsonSerializerOptions()
+        //    {
+        //        IgnoreNullValues = true,
+        //        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        //        PropertyNameCaseInsensitive = true
+        //};
+
+            //string json = JsonSerializer.Serialize<S3UploadRequest>(s3UploadRequest, options);
+
+            //using var client = new HttpClient();
+
+            
+            //client.BaseAddress = (local)
+            //    ? new Uri("http://127.0.0.1:3000")
+            //    : new Uri("https://xwvhb77s80.execute-api.us-east-1.amazonaws.com");
                         
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            //var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            string pathFolder = (local)
-                ? ""
-                : "/Prod";
+            //string pathFolder = (local)
+            //    ? ""
+            //    : "/Prod";
 
-            string path = pathFolder + "/s3-upload";
+            //string path = pathFolder + "/s3-upload";
             
-            var result = await client.PostAsync(path, content);
+            //var result = await client.PostAsync(path, content);
             
             
-            string message = "Error";
+            //string message = "Error";
 
-            if(result.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                json = await result.Content.ReadAsStringAsync();
-                var responseBody = JsonSerializer.Deserialize<Response>(json, options);
-                message = responseBody.Message;
-            }
+            //if(result.StatusCode == System.Net.HttpStatusCode.OK)
+            //{
+            //    json = await result.Content.ReadAsStringAsync();
+            //    var responseBody = JsonSerializer.Deserialize<Response>(json, options);
+            //    message = responseBody.Message;
+            //}
 
-            Console.WriteLine(message);
+            //Console.WriteLine(message);
 
-            //now attempt a read
-            result = await client.GetAsync("/Prod/read-examples");
+            ////now attempt a read
+            //result = await client.GetAsync("/Prod/read-examples");
 
-            message = "Error";
+            //message = "Error";
 
-            if (result.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                json = await result.Content.ReadAsStringAsync();
-                var messageItems = JsonSerializer.Deserialize<ResponseB>(json, options);
-                int x = 9;    
-            }
+            //if (result.StatusCode == System.Net.HttpStatusCode.OK)
+            //{
+            //    json = await result.Content.ReadAsStringAsync();
+            //    var messageItems = JsonSerializer.Deserialize<ResponseB>(json, options);
+            //    int x = 9;    
+            //}
 
             
 
@@ -124,7 +134,7 @@ namespace NinjaDudsDesktopClient
             _mjpeg.FrameReady += mjpeg_FrameReady;
             _mjpeg.Error += _mjpeg_Error;
 
-            _mjpeg.ParseStream(new Uri("http://192.168.1.14:8081"));
+            //_mjpeg.ParseStream(new Uri("http://192.168.1.14:8081"));
             TestWebApi();           
         }
 
@@ -230,6 +240,12 @@ namespace NinjaDudsDesktopClient
         public string Message { get; set; }
         public string ContentType { get; set; }
         public bool IsBase64Encoded { get; set; }
+    }
+
+    public class S3UploadResponse
+    {
+        public string Key { get; set; }
+        public string Message { get; set; }
     }
 
     public class ResponseB
