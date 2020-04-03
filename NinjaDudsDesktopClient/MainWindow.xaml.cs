@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -27,6 +28,7 @@ namespace NinjaDudsDesktopClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        public List<Task> Tasks = new List<Task>();
 
         protected string PngToBase64(string path)
         {
@@ -58,29 +60,59 @@ namespace NinjaDudsDesktopClient
 
         public async void TestWebApi()
         {
-            NinjaDudsAwsApi.Init(true);
+            NinjaDudsAwsApi.Init();
             NinjaDudsAwsApi api = NinjaDudsAwsApi.Current;
 
             
             var s3UploadRequest = new S3UploadRequest()
             {
-                Key = "test599.png",
-                Content = PngToBase64(@"C:\Users\blank\Pictures\image.png"),
+                Key = "key2.png",
+                //Content = PngToBase64(@"C:\Users\blank\Pictures\image.png"),
+                Content = PngToBase64(@"C:\Users\blank\Pictures\lumpiakitchen.png"),
                 IsBase64Encoded = true,
                 ContentType = "image/png"
             };
-
-            var s3DownloadRequest = new S3DownloadRequest()
-            {
-                Key = "test59.png",
-            };
+                      
 
             try
             {
+                List<Tuple<string, System.Windows.Controls.Image>> keys = new List<Tuple<string, System.Windows.Controls.Image>>();
+                keys.Add(new Tuple<string, System.Windows.Controls.Image>("key1.png", this.ImageViewer));
+                keys.Add(new Tuple<string, System.Windows.Controls.Image>("key2.png", this.ImageViewer2));
 
-                var s3UploadResponse = await api.S3UploadAsync(s3UploadRequest);
-                var s3DownloadResponse = await api.S3DownloadAsync(s3DownloadRequest);
-                ImageViewer.Source = Base64ToPng(s3DownloadResponse.Content);
+                foreach (var key in keys)
+                {
+
+                    Task t = Task.Factory.StartNew(async (object obj) =>
+                    {
+                        Tuple<string, System.Windows.Controls.Image> data = obj as Tuple<string, System.Windows.Controls.Image>;
+
+                        Debug.WriteLine(data.Item1);
+
+                        S3DownloadRequest downloadRequest = new S3DownloadRequest()
+                        {
+                            Key = data.Item1
+                        };
+
+
+                        var s3DownloadResponse = await api.S3DownloadAsync(downloadRequest);
+                        data.Item2.Dispatcher.Invoke(() =>
+                        {
+                            data.Item2.Source = Base64ToPng(s3DownloadResponse.Content);
+                        });
+
+
+                    },
+                    key);
+
+                    Tasks.Add(t);
+
+                }
+
+
+                // var s3UploadResponse = await api.S3UploadAsync(s3UploadRequest);
+                //var s3DownloadResponse = await api.S3DownloadAsync(s3DownloadRequest);
+                //ImageViewer.Source = Base64ToPng(s3DownloadResponse.Content);
 
             }
             catch (Exception ex)
@@ -279,9 +311,6 @@ namespace NinjaDudsDesktopClient
     public class S3DownloadRequest
     {
         public string Key { get; set; }
-        public string Message { get; set; }
-        public string ContentType { get; set; }
-        public bool IsBase64Encoded { get; set; }
     }
 
     public class S3DownloadResponse
@@ -296,6 +325,13 @@ namespace NinjaDudsDesktopClient
 
         public MessageItem[] DbResult { get; set; }
     
+    }
+
+    public class DownloadImageData
+    {
+        public System.Windows.Controls.Image Image { get; set; }
+
+        public string Key { get; set; }
     }
 
         

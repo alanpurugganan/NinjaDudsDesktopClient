@@ -8,7 +8,8 @@
         Title="MainWindow" Height="650" Width="800">
     <DockPanel>
         <Button Content="Button" DockPanel.Dock="Bottom" Click="Button_Click"/>
-        <Image DockPanel.Dock="Bottom" x:Name="ImageViewer" Width="400"/>
+        <Image DockPanel.Dock="Left" x:Name="ImageViewer" Width="400"/>
+        <Image DockPanel.Dock="Right" x:Name="ImageViewer2" Width="400"/>
         
 
     </DockPanel>
