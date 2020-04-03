@@ -27,12 +27,10 @@ namespace NinjaDudsDesktopClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        public async void TestWebApi()
-        {
-          
-            var response = new Response() { Message = "YippeKayYay" };
 
-            BitmapImage bitmap = new BitmapImage(new Uri(@"C:\Users\blank\Pictures\Capture.PNG"));
+        protected string PngToBase64(string path)
+        {
+            BitmapImage bitmap = new BitmapImage(new Uri(path));
             BitmapEncoder encoder = new PngBitmapEncoder();
             encoder.Frames.Add(BitmapFrame.Create(bitmap));
 
@@ -41,21 +39,51 @@ namespace NinjaDudsDesktopClient
             byte[] imageBytes = memoryStream.ToArray();
             string base64String = Convert.ToBase64String(imageBytes);
 
+            return base64String;
+        }
+
+        protected BitmapSource Base64ToPng(string base64String)
+        {
+            byte[] imageBytes = Convert.FromBase64String(base64String);
+            MemoryStream ms = new MemoryStream(imageBytes, 0, imageBytes.Length);
+            ms.Write(imageBytes, 0, imageBytes.Length);
+
+            BitmapDecoder decoder = new PngBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.Default);
+
+            BitmapSource bitmapSource = decoder.Frames[0];
+
+            return bitmapSource;
+        }
+
+
+        public async void TestWebApi()
+        {
+            NinjaDudsAwsApi.Init(true);
+            NinjaDudsAwsApi api = NinjaDudsAwsApi.Current;
+
+            
             var s3UploadRequest = new S3UploadRequest()
             {
-                Key = "testing57.png",
-                Message = base64String,
+                Key = "test599.png",
+                Content = PngToBase64(@"C:\Users\blank\Pictures\image.png"),
                 IsBase64Encoded = true,
                 ContentType = "image/png"
             };
 
+            var s3DownloadRequest = new S3DownloadRequest()
+            {
+                Key = "test59.png",
+            };
+
             try
             {
-                NinjaDudsAwsApi.Init();
-                NinjaDudsAwsApi api = NinjaDudsAwsApi.Current;
+
                 var s3UploadResponse = await api.S3UploadAsync(s3UploadRequest);
+                var s3DownloadResponse = await api.S3DownloadAsync(s3DownloadRequest);
+                ImageViewer.Source = Base64ToPng(s3DownloadResponse.Content);
+
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 int x = 9;
             }
@@ -237,7 +265,7 @@ namespace NinjaDudsDesktopClient
     public class S3UploadRequest
     {
         public string Key { get; set; }
-        public string Message { get; set; }
+        public string Content { get; set; }
         public string ContentType { get; set; }
         public bool IsBase64Encoded { get; set; }
     }
@@ -248,7 +276,21 @@ namespace NinjaDudsDesktopClient
         public string Message { get; set; }
     }
 
-    public class ResponseB
+    public class S3DownloadRequest
+    {
+        public string Key { get; set; }
+        public string Message { get; set; }
+        public string ContentType { get; set; }
+        public bool IsBase64Encoded { get; set; }
+    }
+
+    public class S3DownloadResponse
+    {
+        public string ContentType { get; set; }
+        public string Content { get; set; }
+    }
+
+    public class ReadExampleResponse
     {
         public string S3Result { get; set; }
 

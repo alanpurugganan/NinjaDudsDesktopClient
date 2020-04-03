@@ -58,13 +58,9 @@ namespace NinjaDudsDesktopClient
             return HttpClient.PostAsync(path, content);
         }
 
-        protected Task<HttpResponseMessage> HttpGet<T>(T request, string resource)
+        protected Task<HttpResponseMessage> HttpGet(string resource)
         {
-            string json = JsonSerializer.Serialize<T>(request, JsonSerializerOptions);
             string path = ParentFolder + "/" + resource;
-
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
             return HttpClient.GetAsync(path);
         }
 
@@ -77,6 +73,32 @@ namespace NinjaDudsDesktopClient
 
             string json = await result.Content.ReadAsStringAsync();
             var responseBody = JsonSerializer.Deserialize<S3UploadResponse>(json, JsonSerializerOptions);
+            return responseBody;
+        }
+
+        public async Task<S3DownloadResponse> S3DownloadAsync(S3DownloadRequest request)
+        {
+            var result = await HttpPost(request, "s3-download");
+
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new Exception(result.ReasonPhrase);
+
+            string json = await result.Content.ReadAsStringAsync();
+            var responseBody = JsonSerializer.Deserialize<S3DownloadResponse>(json, JsonSerializerOptions);
+            return responseBody;
+        }
+
+
+
+        public async Task<ReadExampleResponse> ReadExamples()
+        {
+            var result = await HttpGet("read-examples");
+
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new Exception(result.ReasonPhrase);
+
+            string json = await result.Content.ReadAsStringAsync();
+            var responseBody = JsonSerializer.Deserialize<ReadExampleResponse>(json, JsonSerializerOptions);
             return responseBody;
         }
 
