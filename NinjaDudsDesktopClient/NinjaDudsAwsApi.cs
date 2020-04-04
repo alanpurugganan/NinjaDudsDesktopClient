@@ -83,7 +83,17 @@ namespace NinjaDudsDesktopClient
             string path = ParentFolder + "/" + resource;
             return HttpClient.GetAsync(path);
         }
+        
+        public async Task DbDeleteAsync(dynamic request)
+        {
+            var result = await HttpPost(request, "db-delete");
 
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                string json = await result.Content.ReadAsStringAsync();
+                throw new Exception(json);
+            }
+        }
         public async Task DbUpdateAsync(dynamic request)
         {
             var result = await HttpPost(request, "db-update");

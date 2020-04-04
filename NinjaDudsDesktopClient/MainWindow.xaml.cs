@@ -82,6 +82,13 @@ namespace NinjaDudsDesktopClient
                 obj.Key.SK = "jjjjjjjjj";
                 obj.UpdateExpression = "set CustomMessage = :r";
 
+                //Add the following to update conditionally
+                //ConditionExpression: "size(info.actors) > :num",
+                //ExpressionAttributeValues:
+                  //          {
+                    //            ":num": 3
+                //},
+
 
                 
                 obj.ExpressionAttributeValues = JsObj();
@@ -89,7 +96,17 @@ namespace NinjaDudsDesktopClient
                 dict[":r"] = "Cool part 2";
 
 
-                await api.DbUpdateAsync(obj);
+                //await api.DbUpdateAsync(obj);
+
+                obj = JsObj();
+                obj.TableName = "NinjaDudsMainTablexxLocalxx";
+                obj.Key = JsObj();
+                obj.Key.PK = "alan.purugganan@gmail.com";
+                obj.Key.SK = "jjjjjjjjj";
+
+
+
+                await api.DbDeleteAsync(obj);
 
 
                 //        TableName: table,
