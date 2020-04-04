@@ -37,6 +37,13 @@ namespace NinjaDudsDesktopClient
                 PropertyNameCaseInsensitive = true
             };
 
+            this.DbJsonSerializerOptions = new JsonSerializerOptions()
+            {
+                IgnoreNullValues = true,
+                PropertyNameCaseInsensitive = true
+            };
+
+
             this.Local = local;
         }
 
@@ -47,6 +54,9 @@ namespace NinjaDudsDesktopClient
         protected HttpClient HttpClient { get; set; }
 
         protected JsonSerializerOptions JsonSerializerOptions {get;set;}
+
+        protected JsonSerializerOptions DbJsonSerializerOptions { get; set; }
+
 
         protected Task<HttpResponseMessage> HttpPost<T>(T request, string resource)
         {
@@ -62,6 +72,30 @@ namespace NinjaDudsDesktopClient
         {
             string path = ParentFolder + "/" + resource;
             return HttpClient.GetAsync(path);
+        }
+
+        public async Task<DbPutResponse> DbPutAsync(DbPutRequest request)
+        {
+            var result = await HttpPost(request, "db-put");
+
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new Exception(result.ReasonPhrase);
+
+            string json = await result.Content.ReadAsStringAsync();
+            var responseBody = JsonSerializer.Deserialize<DbPutResponse>(json, DbJsonSerializerOptions);
+            return responseBody;
+        }
+
+        public async Task<DbGetResponse> DbGetAsync(DbGetRequest request)
+        {
+            var result = await HttpPost(request, "db-get");
+
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new Exception(result.ReasonPhrase);
+
+            string json = await result.Content.ReadAsStringAsync();
+            var responseBody = JsonSerializer.Deserialize<DbGetResponse>(json, DbJsonSerializerOptions);
+            return responseBody;
         }
 
         public async Task<S3UploadResponse> S3UploadAsync(S3UploadRequest request)

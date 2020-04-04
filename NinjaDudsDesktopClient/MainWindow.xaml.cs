@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -58,9 +59,9 @@ namespace NinjaDudsDesktopClient
         }
 
 
-        public async void TestWebApi()
+        public void TestWebApi()
         {
-            NinjaDudsAwsApi.Init();
+            NinjaDudsAwsApi.Init(true);
             NinjaDudsAwsApi api = NinjaDudsAwsApi.Current;
 
             
@@ -185,6 +186,73 @@ namespace NinjaDudsDesktopClient
         }
 
         public MjpegDecoder _mjpeg;
+        public ExpandoObject JsObj()
+        {
+            return new ExpandoObject();
+        }
+
+        public List<object> JsList()
+        {
+            return new List<object>();
+        }
+
+        ExpandoObject ParseObject(JsonElement jsonElement)
+        {
+            dynamic obj = new ExpandoObject();
+            IDictionary<string, object> dict = obj;
+
+            foreach(var o in jsonElement.EnumerateObject())
+            {
+                if (o.Value.ValueKind == JsonValueKind.Number)
+                    dict[o.Name] = o.Value.GetDouble();
+                else if (o.Value.ValueKind == JsonValueKind.String)
+                    dict[o.Name] = o.Value.GetString();
+                else if (o.Value.ValueKind == JsonValueKind.Object)
+                    dict[o.Name] = ParseObject(o.Value);
+                else if (o.Value.ValueKind == JsonValueKind.True || o.Value.ValueKind == JsonValueKind.False)
+                    dict[o.Name] = o.Value.GetBoolean();
+                else if (o.Value.ValueKind == JsonValueKind.Array)
+                    dict[o.Name] = ParseArray(o.Value);
+            }
+
+            return obj;
+        }
+
+        List<object> ParseArray(JsonElement jsonElement)
+        {
+            var list = new List<object>();
+
+            foreach (var o in jsonElement.EnumerateArray())
+            {
+                if (o.ValueKind == JsonValueKind.Number)
+                    list.Add(o.GetDouble());
+                else if (o.ValueKind == JsonValueKind.String)
+                    list.Add(o.GetString());
+                else if (o.ValueKind == JsonValueKind.Object)
+                    list.Add(ParseObject(o));
+                else if (o.ValueKind == JsonValueKind.True || o.ValueKind == JsonValueKind.False)
+                    list.Add(o.GetBoolean());
+
+            }
+
+            return list;
+        }
+
+        object JsonToObject(string s)
+        {
+            var doc = JsonDocument.Parse(s);
+
+            var jsonElement = doc.RootElement;
+            if (jsonElement.ValueKind == JsonValueKind.Object)
+                return ParseObject(jsonElement);
+            else
+                return ParseArray(jsonElement);
+        }
+
+        string ObjectToJson(object s)
+        {
+            return JsonSerializer.Serialize(s);
+        }
 
         public MainWindow()
         {
@@ -193,6 +261,32 @@ namespace NinjaDudsDesktopClient
             _mjpeg = new MjpegDecoder();
             _mjpeg.FrameReady += mjpeg_FrameReady;
             _mjpeg.Error += _mjpeg_Error;
+
+
+            //test json with dictionary
+
+            dynamic o = JsObj();
+            o.Hello = "sdf";
+            o.Item = JsObj();
+            o.Item.PK = "alan.purugganan@gmail.com";
+            o.Item.SK = "123456";
+            o.Item.List = JsList();
+            o.Item.List.Add(JsObj());
+            o.Item.List[0].Hello = "sdf";
+
+            string xy = ObjectToJson(o);
+
+            dynamic p = JsonToObject(xy);
+
+            string h = p.Hello;
+          
+
+            
+
+            
+            
+
+            
 
             //_mjpeg.ParseStream(new Uri("http://192.168.1.14:8081"));
             TestWebApi();           
@@ -282,8 +376,10 @@ namespace NinjaDudsDesktopClient
 
     public class Person
     {
-        public string Email { get; set; }
+        public string PK { get; set; }
 
+        public string SK { get; set; }
+        
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
@@ -291,6 +387,32 @@ namespace NinjaDudsDesktopClient
 
     public class Response
     {
+        public string Message { get; set; }
+    }
+
+    public class DbPutRequest
+    {
+        public string TableName { get; set; }
+        public object Item { get; set; }
+    }
+
+    public class DbPutResponse
+    {
+        public string Key { get; set; }
+        public string Message { get; set; }
+    }
+
+    public class DbGetRequest
+    {
+        public string Key { get; set; }
+        public string Content { get; set; }
+        public string ContentType { get; set; }
+        public bool IsBase64Encoded { get; set; }
+    }
+
+    public class DbGetResponse
+    {
+        public string Key { get; set; }
         public string Message { get; set; }
     }
 
