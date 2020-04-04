@@ -47,15 +47,13 @@ namespace NinjaDudsDesktopClient
                 obj.IsBase64Encoded = true;
                 obj.ContentType = "image/png";
 
-                
-
-                //await api.S3UploadAsync(obj);
+                await api.S3UploadAsync(obj);
 
                 obj = JsObj();
                 obj.Key = "key2.png";
 
-                //var s3DownloadResponse = await api.S3DownloadAsync(obj);
-                //ImageViewer.Source = Utility.Base64ToPng(s3DownloadResponse.content);
+                var s3DownloadResponse = await api.S3DownloadAsync(obj);
+                ImageViewer.Source = Utility.Base64ToPng(s3DownloadResponse.content);
 
                 obj = JsObj();
                 obj.TableName = "NinjaDudsMainTablexxLocalxx";
@@ -64,7 +62,7 @@ namespace NinjaDudsDesktopClient
                 obj.Item.SK = "jjjjjjjjj";
                 obj.Item.CustomMessage = "cool";
 
-                //await api.DbPutAsync(obj);
+                await api.DbPutAsync(obj);
 
                 obj = JsObj();
                 obj.TableName = "NinjaDudsMainTablexxLocalxx";
@@ -81,22 +79,15 @@ namespace NinjaDudsDesktopClient
                 obj.Key.PK = "alan.purugganan@gmail.com";
                 obj.Key.SK = "jjjjjjjjj";
                 obj.UpdateExpression = "set CustomMessage = :r";
+                obj.ExpressionAttributeValues = JsObj(
+                    ":r","Cool part 2"
+                    );
 
                 //Add the following to update conditionally
-                //ConditionExpression: "size(info.actors) > :num",
-                //ExpressionAttributeValues:
-                  //          {
-                    //            ":num": 3
-                //},
+                //obj.ConditionExpression = "size(info.actors) > :num";
+                //obj.ExpressionAttributeValues = JsObj(":num", 3);
 
-
-                
-                obj.ExpressionAttributeValues = JsObj();
-                IDictionary<string, object> dict = obj.ExpressionAttributeValues;
-                dict[":r"] = "Cool part 2";
-
-
-                //await api.DbUpdateAsync(obj);
+                await api.DbUpdateAsync(obj);
 
                 obj = JsObj();
                 obj.TableName = "NinjaDudsMainTablexxLocalxx";
@@ -104,26 +95,22 @@ namespace NinjaDudsDesktopClient
                 obj.Key.PK = "alan.purugganan@gmail.com";
                 obj.Key.SK = "jjjjjjjjj";
 
-
-
                 await api.DbDeleteAsync(obj);
 
+                obj = JsObj();
+                obj.TableName = "NinjaDudsMainTablexxLocalxx";
+                obj.KeyConditionExpression = "#key = :value";
+                obj.ExpressionAttributeNames = JsObj(
+                    "#key", "PK"
+                    );
+                
+                obj.ExpressionAttributeValues = JsObj(
+                    ":value", "alan.purugganan@gmail.com"
+                    );
+                
+                List<object> j = await api.DbQueryAsync(obj);
 
-                //        TableName: table,
-                //Key:
-                //            {
-                //                "year": year,
-                //    "title": title
-                //},
-                //UpdateExpression: "set info.rating = :r, info.plot=:p, info.actors=:a",
-                //ExpressionAttributeValues:
-                //            {
-                //                ":r":5.5,
-                //    ":p":"Everything happens all at once.",
-                //    ":a":["Larry", "Moe", "Curly"]
-                //},
-                //ReturnValues:"UPDATED_NEW"
-
+                                
 
 
                 //THIS EXAMPLE IS TO DOWNLOAD MULTIPLE IMAGES
@@ -237,9 +224,14 @@ namespace NinjaDudsDesktopClient
         }
 
         public MjpegDecoder _mjpeg;
-        public dynamic JsObj()
+        public dynamic JsObj(params object [] parameters)
         {
             dynamic expando = new ExpandoObject();
+            IDictionary<string, object> dict = expando;
+
+            for (int i = 0; i < parameters.Length; i = i + 2)
+                dict[parameters[i] as string] = parameters[i + 1];
+
             return expando;
         }
 

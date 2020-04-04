@@ -83,7 +83,19 @@ namespace NinjaDudsDesktopClient
             string path = ParentFolder + "/" + resource;
             return HttpClient.GetAsync(path);
         }
-        
+
+        public async Task<object> DbQueryAsync(dynamic request)
+        {
+            var result = await HttpPost(request, "db-query");
+            string json = await result.Content.ReadAsStringAsync();
+
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                throw new Exception(json);
+            
+            object responseBody = Utility.ToJsObj(json);
+            return responseBody;
+        }
+
         public async Task DbDeleteAsync(dynamic request)
         {
             var result = await HttpPost(request, "db-delete");
@@ -119,11 +131,11 @@ namespace NinjaDudsDesktopClient
         public async Task<object> DbGetAsync(dynamic request)
         {
             var result = await HttpPost(request, "db-get");
+            string json = await result.Content.ReadAsStringAsync();
 
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
-                throw new Exception(result.ReasonPhrase);
-
-            string json = await result.Content.ReadAsStringAsync();
+                throw new Exception(json);
+            
             object responseBody = Utility.ToJsObj(json);
             return responseBody;
         }
@@ -142,12 +154,13 @@ namespace NinjaDudsDesktopClient
         public async Task<object> S3DownloadAsync(dynamic request)
         {
             var result = await HttpPost(request, "s3-download");
+            string json = await result.Content.ReadAsStringAsync();
 
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
-                throw new Exception(result.ReasonPhrase);
+                throw new Exception(json);
 
-            string json = await result.Content.ReadAsStringAsync();
-            dynamic responseBody = Utility.ToJsObj(json);
+            
+            object responseBody = Utility.ToJsObj(json);
             return responseBody;
         }
 
