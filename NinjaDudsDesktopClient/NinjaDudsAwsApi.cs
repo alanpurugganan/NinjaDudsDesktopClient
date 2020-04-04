@@ -84,6 +84,17 @@ namespace NinjaDudsDesktopClient
             return HttpClient.GetAsync(path);
         }
 
+        public async Task DbUpdateAsync(dynamic request)
+        {
+            var result = await HttpPost(request, "db-update");
+
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                string json = await result.Content.ReadAsStringAsync();
+                throw new Exception(json);
+            }
+        }
+
         public async Task DbPutAsync(dynamic request)
         {
             var result = await HttpPost(request, "db-put");

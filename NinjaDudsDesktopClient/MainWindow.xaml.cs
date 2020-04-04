@@ -75,6 +75,38 @@ namespace NinjaDudsDesktopClient
                 obj = await api.DbGetAsync(obj);
 
 
+                obj = JsObj();
+                obj.TableName = "NinjaDudsMainTablexxLocalxx";
+                obj.Key = JsObj();
+                obj.Key.PK = "alan.purugganan@gmail.com";
+                obj.Key.SK = "jjjjjjjjj";
+                obj.UpdateExpression = "set CustomMessage = :r";
+
+
+                
+                obj.ExpressionAttributeValues = JsObj();
+                IDictionary<string, object> dict = obj.ExpressionAttributeValues;
+                dict[":r"] = "Cool part 2";
+
+
+                await api.DbUpdateAsync(obj);
+
+
+                //        TableName: table,
+                //Key:
+                //            {
+                //                "year": year,
+                //    "title": title
+                //},
+                //UpdateExpression: "set info.rating = :r, info.plot=:p, info.actors=:a",
+                //ExpressionAttributeValues:
+                //            {
+                //                ":r":5.5,
+                //    ":p":"Everything happens all at once.",
+                //    ":a":["Larry", "Moe", "Curly"]
+                //},
+                //ReturnValues:"UPDATED_NEW"
+
 
 
                 //THIS EXAMPLE IS TO DOWNLOAD MULTIPLE IMAGES
