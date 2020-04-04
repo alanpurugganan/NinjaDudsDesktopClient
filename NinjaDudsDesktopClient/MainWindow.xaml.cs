@@ -31,93 +31,95 @@ namespace NinjaDudsDesktopClient
     {
         public List<Task> Tasks = new List<Task>();
 
-        protected string PngToBase64(string path)
-        {
-            BitmapImage bitmap = new BitmapImage(new Uri(path));
-            BitmapEncoder encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(bitmap));
-
-            MemoryStream memoryStream = new MemoryStream();
-            encoder.Save(memoryStream);
-            byte[] imageBytes = memoryStream.ToArray();
-            string base64String = Convert.ToBase64String(imageBytes);
-
-            return base64String;
-        }
-
-        protected BitmapSource Base64ToPng(string base64String)
-        {
-            byte[] imageBytes = Convert.FromBase64String(base64String);
-            MemoryStream ms = new MemoryStream(imageBytes, 0, imageBytes.Length);
-            ms.Write(imageBytes, 0, imageBytes.Length);
-
-            BitmapDecoder decoder = new PngBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.Default);
-
-            BitmapSource bitmapSource = decoder.Frames[0];
-
-            return bitmapSource;
-        }
+       
 
 
-        public void TestWebApi()
+        public async void TestWebApi()
         {
             NinjaDudsAwsApi.Init(true);
             NinjaDudsAwsApi api = NinjaDudsAwsApi.Current;
 
-            
-            var s3UploadRequest = new S3UploadRequest()
-            {
-                Key = "key2.png",
-                //Content = PngToBase64(@"C:\Users\blank\Pictures\image.png"),
-                Content = PngToBase64(@"C:\Users\blank\Pictures\lumpiakitchen.png"),
-                IsBase64Encoded = true,
-                ContentType = "image/png"
-            };
-                      
-
             try
             {
-                List<Tuple<string, System.Windows.Controls.Image>> keys = new List<Tuple<string, System.Windows.Controls.Image>>();
-                keys.Add(new Tuple<string, System.Windows.Controls.Image>("key1.png", this.ImageViewer));
-                keys.Add(new Tuple<string, System.Windows.Controls.Image>("key2.png", this.ImageViewer2));
+                dynamic obj = JsObj();
+                obj.Key = "key2.png";
+                obj.Content = Utility.PngToBase64(@"C:\Users\blank\Pictures\lumpiakitchen.png");
+                obj.IsBase64Encoded = true;
+                obj.ContentType = "image/png";
 
-                foreach (var key in keys)
-                {
+                
 
-                    Task t = Task.Factory.StartNew(async (object obj) =>
-                    {
-                        Tuple<string, System.Windows.Controls.Image> data = obj as Tuple<string, System.Windows.Controls.Image>;
+                //await api.S3UploadAsync(obj);
 
-                        Debug.WriteLine(data.Item1);
+                obj = JsObj();
+                obj.Key = "key2.png";
 
-                        S3DownloadRequest downloadRequest = new S3DownloadRequest()
-                        {
-                            Key = data.Item1
-                        };
+                //var s3DownloadResponse = await api.S3DownloadAsync(obj);
+                //ImageViewer.Source = Utility.Base64ToPng(s3DownloadResponse.content);
 
+                obj = JsObj();
+                obj.TableName = "NinjaDudsMainTablexxLocalxx";
+                obj.Item = JsObj();
+                obj.Item.PK = "alan.purugganan@gmail.com";
+                obj.Item.SK = "jjjjjjjjj";
+                obj.Item.CustomMessage = "cool";
 
-                        var s3DownloadResponse = await api.S3DownloadAsync(downloadRequest);
-                        data.Item2.Dispatcher.Invoke(() =>
-                        {
-                            data.Item2.Source = Base64ToPng(s3DownloadResponse.Content);
-                        });
+                //await api.DbPutAsync(obj);
 
+                obj = JsObj();
+                obj.TableName = "NinjaDudsMainTablexxLocalxx";
+                obj.Key = JsObj();
+                obj.Key.PK = "alan.purugganan@gmail.com";
+                obj.Key.SK = "jjjjjjjjj";
 
-                    },
-                    key);
-
-                    Tasks.Add(t);
-
-                }
+                obj = await api.DbGetAsync(obj);
 
 
-                // var s3UploadResponse = await api.S3UploadAsync(s3UploadRequest);
-                //var s3DownloadResponse = await api.S3DownloadAsync(s3DownloadRequest);
-                //ImageViewer.Source = Base64ToPng(s3DownloadResponse.Content);
+
+
+                //THIS EXAMPLE IS TO DOWNLOAD MULTIPLE IMAGES
+                //List<Tuple<string, System.Windows.Controls.Image>> keys = new List<Tuple<string, System.Windows.Controls.Image>>();
+                //keys.Add(new Tuple<string, System.Windows.Controls.Image>("key1.png", this.ImageViewer));
+                //keys.Add(new Tuple<string, System.Windows.Controls.Image>("key2.png", this.ImageViewer2));
+
+                //foreach (var key in keys)
+                //{
+
+                //    Task t = Task.Factory.StartNew(async (object obj) =>
+                //    {
+                //        Tuple<string, System.Windows.Controls.Image> data = obj as Tuple<string, System.Windows.Controls.Image>;
+
+                //        Debug.WriteLine(data.Item1);
+
+                //        S3DownloadRequest downloadRequest = new S3DownloadRequest()
+                //        {
+                //            Key = data.Item1
+                //        };
+
+
+                //        var s3DownloadResponse = await api.S3DownloadAsync(downloadRequest);
+                //        data.Item2.Dispatcher.Invoke(() =>
+                //        {
+                //            data.Item2.Source = Base64ToPng(s3DownloadResponse.Content);
+                //        });
+
+
+                //    },
+                //    key);
+
+                //    Tasks.Add(t);
+
+                //}
+
+
+
+
+
 
             }
             catch (Exception ex)
             {
+                dynamic err = Utility.ToJsObj(ex.Message);
                 int x = 9;
             }
 
@@ -186,73 +188,17 @@ namespace NinjaDudsDesktopClient
         }
 
         public MjpegDecoder _mjpeg;
-        public ExpandoObject JsObj()
+        public dynamic JsObj()
         {
-            return new ExpandoObject();
+            dynamic expando = new ExpandoObject();
+            return expando;
         }
 
-        public List<object> JsList()
+        public List<object> JsArray()
         {
             return new List<object>();
         }
-
-        ExpandoObject ParseObject(JsonElement jsonElement)
-        {
-            dynamic obj = new ExpandoObject();
-            IDictionary<string, object> dict = obj;
-
-            foreach(var o in jsonElement.EnumerateObject())
-            {
-                if (o.Value.ValueKind == JsonValueKind.Number)
-                    dict[o.Name] = o.Value.GetDouble();
-                else if (o.Value.ValueKind == JsonValueKind.String)
-                    dict[o.Name] = o.Value.GetString();
-                else if (o.Value.ValueKind == JsonValueKind.Object)
-                    dict[o.Name] = ParseObject(o.Value);
-                else if (o.Value.ValueKind == JsonValueKind.True || o.Value.ValueKind == JsonValueKind.False)
-                    dict[o.Name] = o.Value.GetBoolean();
-                else if (o.Value.ValueKind == JsonValueKind.Array)
-                    dict[o.Name] = ParseArray(o.Value);
-            }
-
-            return obj;
-        }
-
-        List<object> ParseArray(JsonElement jsonElement)
-        {
-            var list = new List<object>();
-
-            foreach (var o in jsonElement.EnumerateArray())
-            {
-                if (o.ValueKind == JsonValueKind.Number)
-                    list.Add(o.GetDouble());
-                else if (o.ValueKind == JsonValueKind.String)
-                    list.Add(o.GetString());
-                else if (o.ValueKind == JsonValueKind.Object)
-                    list.Add(ParseObject(o));
-                else if (o.ValueKind == JsonValueKind.True || o.ValueKind == JsonValueKind.False)
-                    list.Add(o.GetBoolean());
-
-            }
-
-            return list;
-        }
-
-        object JsonToObject(string s)
-        {
-            var doc = JsonDocument.Parse(s);
-
-            var jsonElement = doc.RootElement;
-            if (jsonElement.ValueKind == JsonValueKind.Object)
-                return ParseObject(jsonElement);
-            else
-                return ParseArray(jsonElement);
-        }
-
-        string ObjectToJson(object s)
-        {
-            return JsonSerializer.Serialize(s);
-        }
+                
 
         public MainWindow()
         {
@@ -270,15 +216,15 @@ namespace NinjaDudsDesktopClient
             o.Item = JsObj();
             o.Item.PK = "alan.purugganan@gmail.com";
             o.Item.SK = "123456";
-            o.Item.List = JsList();
+            o.Item.List = JsArray();
             o.Item.List.Add(JsObj());
             o.Item.List[0].Hello = "sdf";
 
-            string xy = ObjectToJson(o);
+            string xy = Utility.ToJson(o);
 
-            dynamic p = JsonToObject(xy);
+            dynamic p = Utility.ToJsObj(xy);
 
-            string h = p.Hello;
+            string h = p.Item.List[0].Hello;
           
 
             
@@ -371,6 +317,105 @@ namespace NinjaDudsDesktopClient
             }
         }
     }
+
+    public static class Utility
+    {
+        public static string PngToBase64(string path)
+        {
+            BitmapImage bitmap = new BitmapImage(new Uri(path));
+            BitmapEncoder encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(bitmap));
+
+            MemoryStream memoryStream = new MemoryStream();
+            encoder.Save(memoryStream);
+            byte[] imageBytes = memoryStream.ToArray();
+            string base64String = Convert.ToBase64String(imageBytes);
+
+            return base64String;
+        }
+
+        public static BitmapSource Base64ToPng(string base64String)
+        {
+            byte[] imageBytes = Convert.FromBase64String(base64String);
+            MemoryStream ms = new MemoryStream(imageBytes, 0, imageBytes.Length);
+            ms.Write(imageBytes, 0, imageBytes.Length);
+
+            BitmapDecoder decoder = new PngBitmapDecoder(ms, BitmapCreateOptions.None, BitmapCacheOption.Default);
+
+            BitmapSource bitmapSource = decoder.Frames[0];
+
+            return bitmapSource;
+        }
+
+        public static ExpandoObject ParseObject(JsonElement jsonElement)
+        {
+            dynamic obj = new ExpandoObject();
+            IDictionary<string, object> dict = obj;
+
+            foreach (var o in jsonElement.EnumerateObject())
+            {
+                if (o.Value.ValueKind == JsonValueKind.Number)
+                    dict[o.Name] = o.Value.GetDouble();
+                else if (o.Value.ValueKind == JsonValueKind.String)
+                    dict[o.Name] = o.Value.GetString();
+                else if (o.Value.ValueKind == JsonValueKind.Object)
+                    dict[o.Name] = ParseObject(o.Value);
+                else if (o.Value.ValueKind == JsonValueKind.True || o.Value.ValueKind == JsonValueKind.False)
+                    dict[o.Name] = o.Value.GetBoolean();
+                else if (o.Value.ValueKind == JsonValueKind.Array)
+                    dict[o.Name] = ParseArray(o.Value);
+            }
+
+            return obj;
+        }
+
+        public static List<object> ParseArray(JsonElement jsonElement)
+        {
+            var list = new List<object>();
+
+            foreach (var o in jsonElement.EnumerateArray())
+            {
+                if (o.ValueKind == JsonValueKind.Number)
+                    list.Add(o.GetDouble());
+                else if (o.ValueKind == JsonValueKind.String)
+                    list.Add(o.GetString());
+                else if (o.ValueKind == JsonValueKind.Object)
+                    list.Add(ParseObject(o));
+                else if (o.ValueKind == JsonValueKind.True || o.ValueKind == JsonValueKind.False)
+                    list.Add(o.GetBoolean());
+
+            }
+
+            return list;
+        }
+
+        public static object ToJsObj(string s)
+        {
+            var doc = JsonDocument.Parse(s);
+
+            var jsonElement = doc.RootElement;
+            if (jsonElement.ValueKind == JsonValueKind.Object)
+                return ParseObject(jsonElement);
+            else
+                return ParseArray(jsonElement);
+        }
+
+        public static string ToJson(dynamic o)
+        {
+            return JsonSerializer.Serialize(o);
+        }
+
+        public static string ToJson(List<object> o)
+        {
+            return JsonSerializer.Serialize(o);
+        }
+
+
+
+
+
+    }
+
 
     //Added a comment
 
@@ -467,6 +512,8 @@ namespace NinjaDudsDesktopClient
         public string Message { get; set; }
 
     }
+
+    
 
 
 }

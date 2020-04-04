@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -58,11 +59,20 @@ namespace NinjaDudsDesktopClient
         protected JsonSerializerOptions DbJsonSerializerOptions { get; set; }
 
 
-        protected Task<HttpResponseMessage> HttpPost<T>(T request, string resource)
-        {
-            string json = JsonSerializer.Serialize<T>(request, JsonSerializerOptions);
-            string path = ParentFolder + "/" + resource;
+        //protected Task<HttpResponseMessage> HttpPost<T>(T request, string resource)
+        //{
+        //    string json = JsonSerializer.Serialize<T>(request, JsonSerializerOptions);
+        //    string path = ParentFolder + "/" + resource;
 
+        //    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        //    return HttpClient.PostAsync(path, content);
+        //}
+
+        protected Task<HttpResponseMessage> HttpPost(dynamic request, string resource)
+        {
+            string json = Utility.ToJson(request);
+            string path = ParentFolder + "/" + resource;
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             return HttpClient.PostAsync(path, content);
@@ -74,19 +84,18 @@ namespace NinjaDudsDesktopClient
             return HttpClient.GetAsync(path);
         }
 
-        public async Task<DbPutResponse> DbPutAsync(DbPutRequest request)
+        public async Task DbPutAsync(dynamic request)
         {
             var result = await HttpPost(request, "db-put");
 
             if (result.StatusCode != System.Net.HttpStatusCode.OK)
-                throw new Exception(result.ReasonPhrase);
-
-            string json = await result.Content.ReadAsStringAsync();
-            var responseBody = JsonSerializer.Deserialize<DbPutResponse>(json, DbJsonSerializerOptions);
-            return responseBody;
+            {
+                string json = await result.Content.ReadAsStringAsync();
+                throw new Exception(json);
+            }
         }
 
-        public async Task<DbGetResponse> DbGetAsync(DbGetRequest request)
+        public async Task<object> DbGetAsync(dynamic request)
         {
             var result = await HttpPost(request, "db-get");
 
@@ -94,23 +103,22 @@ namespace NinjaDudsDesktopClient
                 throw new Exception(result.ReasonPhrase);
 
             string json = await result.Content.ReadAsStringAsync();
-            var responseBody = JsonSerializer.Deserialize<DbGetResponse>(json, DbJsonSerializerOptions);
+            object responseBody = Utility.ToJsObj(json);
             return responseBody;
         }
 
-        public async Task<S3UploadResponse> S3UploadAsync(S3UploadRequest request)
+        public async Task S3UploadAsync(dynamic request)
         {
             var result = await HttpPost(request, "s3-upload");
-            
-            if (result.StatusCode != System.Net.HttpStatusCode.OK)
-                throw new Exception(result.ReasonPhrase);
 
-            string json = await result.Content.ReadAsStringAsync();
-            var responseBody = JsonSerializer.Deserialize<S3UploadResponse>(json, JsonSerializerOptions);
-            return responseBody;
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                string json = await result.Content.ReadAsStringAsync();
+                throw new Exception(json);
+            }
         }
 
-        public async Task<S3DownloadResponse> S3DownloadAsync(S3DownloadRequest request)
+        public async Task<object> S3DownloadAsync(dynamic request)
         {
             var result = await HttpPost(request, "s3-download");
 
@@ -118,7 +126,7 @@ namespace NinjaDudsDesktopClient
                 throw new Exception(result.ReasonPhrase);
 
             string json = await result.Content.ReadAsStringAsync();
-            var responseBody = JsonSerializer.Deserialize<S3DownloadResponse>(json, JsonSerializerOptions);
+            dynamic responseBody = Utility.ToJsObj(json);
             return responseBody;
         }
 
